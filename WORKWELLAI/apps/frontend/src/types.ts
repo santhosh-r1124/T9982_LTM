@@ -1,0 +1,254 @@
+export interface MetricBaseline {
+  metric: string;
+  baseline: number;
+  current: number;
+  deviation: number;
+  median: number;
+  mean: number;
+  std: number;
+  mad: number;
+  rolling_avg: number;
+  trend: number;
+  window_days: number;
+}
+
+export interface BaselineReadiness {
+  /** no_data: nothing is reporting. building: some days, not enough.
+   *  ready: a usable baseline exists. */
+  state: "no_data" | "building" | "ready";
+  measured_days: number;
+  required_days: number;
+}
+
+export interface BaselineResponse {
+  employee_id: string;
+  readiness: BaselineReadiness;
+  /** The day these readings come from - the most recent one that is both
+   *  measured and over. Null when there is nothing usable yet. */
+  as_of: string | null;
+  metrics: Record<string, MetricBaseline>;
+}
+
+export interface PatternSignal {
+  name: string;
+  change: number;
+  /** How to read `change`: a fraction of baseline, a multiple of the
+   *  signal's typical variation, or a raw delta. */
+  change_kind?: "relative" | "spread" | "absolute";
+  anomalous_days: number;
+}
+
+export interface PatternRecord {
+  id?: string;
+  date: string;
+  state: string;
+  confidence: number;
+  duration_days: number;
+  signals: PatternSignal[];
+}
+
+export interface DataSourceInfo {
+  key: string;
+  label: string;
+  category: string;
+  what: string;
+  why: string;
+  where: string;
+  retention: string;
+  who_can_access: string;
+  default_enabled: boolean;
+  collectible: boolean;
+  enabled: boolean;
+  /**
+   * Switched off org-wide by an administrator. Kept separate from
+   * `collectible`: "WorkWell never collects this" and "your employer turned
+   * this off" are different promises and must not read the same.
+   */
+  org_disabled: boolean;
+}
+
+export interface Preferences {
+  notifications_enabled: boolean;
+  /** IANA name. Decides where this employee's day ends. */
+  timezone: string;
+}
+
+export interface ConnectorInfo {
+  key: string;
+  label: string;
+  auth_kind: string;
+  implemented: boolean;
+  required_config: string[];
+  notes: string;
+  consent_source: string;
+  connected: boolean;
+  /** A redacted fragment so you can tell which URL is stored. Never the URL. */
+  config_hint: string | null;
+  last_sync_at: string | null;
+  last_sync_status: string | null;
+  last_sync_detail: string | null;
+  consent_enabled: boolean;
+}
+
+export interface LiveStatus {
+  /** Changes only when something the employee would notice has changed. */
+  version: string;
+  analysed_at: string | null;
+  last_data_at: string | null;
+  open_interventions: number;
+}
+
+export interface Device {
+  id: string;
+  label: string;
+  created_at: string;
+  last_seen_at: string | null;
+}
+
+/** The plaintext token comes back exactly once, on creation. */
+export interface DeviceCreated extends Device {
+  token: string;
+}
+
+export interface OrgUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  team: string | null;
+  is_active: boolean;
+}
+
+export interface ChatSource {
+  title: string;
+  url?: string | null;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  sources?: ChatSource[];
+  /** The reply is a deterministic fallback, not model text. */
+  degraded?: boolean;
+  degradedReason?: DegradedReason | null;
+}
+
+export interface TeamMetricChange {
+  change_pct: number;
+  direction: "up" | "down" | "flat";
+  contributing_employees: number;
+}
+
+export interface TeamAnalytics {
+  team: string;
+  window_days: number;
+  as_of: string;
+  labels: Record<string, string>;
+  cohort_size: number;
+  min_cohort: number;
+  sufficient_cohort: boolean;
+  metrics: Record<string, TeamMetricChange>;
+  suppressed: string[];
+}
+
+export interface OrgSettings {
+  org_id: string;
+  retention_days: number;
+  aggregation_min_cohort: number;
+  interventions_enabled: boolean;
+  model_name: string | null;
+  disabled_sources: string[];
+  allowed_integrations: string[];
+}
+
+export interface DailyHistoryPoint {
+  date: string;
+  work_duration: number;
+  after_hours: number;
+  meeting_hours: number;
+  focus_minutes: number;
+  average_break_gap: number;
+  context_switches: number;
+}
+
+export interface Intervention {
+  id: string;
+  type: string;
+  message: string;
+  status: string;
+  employee_response: string | null;
+  created_at: string;
+  /** The employee has already rated this one, so the "did this help?"
+   *  follow-up has closed and should not ask again. */
+  has_feedback: boolean;
+}
+
+export interface SelfReportStatus {
+  submitted: boolean;
+  stress?: number;
+  energy?: number;
+  recovery?: number;
+  note?: string | null;
+}
+
+/** One day's own check-in, numbers only - the trend carries no free-text
+ *  note, so it stays safe to glance at over a shoulder. */
+export interface SelfReportPoint {
+  date: string;
+  stress: number;
+  energy: number;
+  recovery: number;
+}
+
+/** A place to turn for help, published by the org. Not collected data:
+ *  admin-authored content, shown to everyone, carrying no telemetry. */
+export interface SupportResource {
+  id: string;
+  label: string;
+  description: string | null;
+  category: string;
+  url: string | null;
+  phone: string | null;
+  email: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor_id: string | null;
+  subject_user_id: string | null;
+  action: string;
+  resource: string;
+  meta: Record<string, unknown>;
+  created_at: string;
+}
+
+/** A seeded fixture account, if this deployment still has any. Empty on
+ *  anything running on real data - see GET /auth/demo-accounts. */
+/** Why a reply is evidence-derived rather than written by a model.
+ *  "not_configured" is a deployment choice, "unreachable" is a fault -
+ *  they read very differently to whoever is looking at the screen. */
+export type DegradedReason = "not_configured" | "unreachable";
+
+export interface DemoAccount {
+  email: string;
+  role: string;
+  password: string;
+  full_name?: string;
+}
+
+export interface WellnessOverview {
+  as_of: string;
+  window_days: number;
+  labels: Record<string, string>;
+  scale_max: number;
+  employees: number;
+  cohort_size: number;
+  min_cohort: number;
+  sufficient_cohort: boolean;
+  pattern_states: Record<string, number>;
+  trend: { week_ending: string; contributors: number; stress: number | null; energy: number | null; recovery: number | null }[];
+  metrics: Record<string, { change_pct: number; direction: "up" | "down" | "flat"; contributing_employees: number }>;
+  suppressed: string[];
+}

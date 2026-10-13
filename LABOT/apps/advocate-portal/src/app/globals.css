@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+/* Shared tokens + component classes (glass surfaces, buttons, inputs, badges).
+   See packages/shared/src/styles/design-system.css. */
+@import '@legal-platform/shared/styles/design-system.css';
+/* Tailwind scans this app's sources automatically; nothing else to register. */

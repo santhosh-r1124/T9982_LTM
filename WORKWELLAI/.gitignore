@@ -1,0 +1,60 @@
+## Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.log
+
+## Env / secrets
+.env
+.env.*
+!.env.example
+
+## Node / frontend
+node_modules/
+apps/frontend/dist/
+apps/frontend/.vite/
+npm-debug.log*
+
+## Database
+*.sqlite3
+pgdata/
+postgres-data/
+
+## Redis writes its snapshot into the working directory
+dump.rdb
+*.rdb
+
+## OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+## Build artifacts
+dist/
+build/
+*.egg-info
+
+# TypeScript incremental build cache - a build artifact, not source.
+*.tsbuildinfo
+
+# Database dumps - never in the repository.
+backups/
+*.sql.gz
+.env
+.env.*
+!.env.example
+api.txt
+__pycache__/
+*.pyc
+node_modules/
+.venv/
+venv/
